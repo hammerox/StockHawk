@@ -11,4 +11,5 @@
   <string name="input_prefill"></string>
   <string name="network_toast">Uh-oh! This app requires an internet connection</string>
   <string name="toast_symbol_not_found">Stock Symbol not found</string>
+  <string name="a11y_fab">Add to list</string>
 </resources>
