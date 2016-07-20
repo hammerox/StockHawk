@@ -15,14 +15,21 @@ import com.github.mikephil.charting.data.CandleData;
 import com.github.mikephil.charting.data.CandleDataSet;
 import com.github.mikephil.charting.data.CandleEntry;
 import com.sam_chordas.android.stockhawk.R;
+import com.sam_chordas.android.stockhawk.rest.DailyValues;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.List;
 
 public class DetailsActivity extends Activity {
 
@@ -69,7 +76,7 @@ public class DetailsActivity extends Activity {
     }
 
 
-    public void setData() {
+    public void setData(List<DailyValues> dailyValues) {
         mChart.resetTracking();
 
         ArrayList<CandleEntry> yVals1 = new ArrayList<>();
@@ -147,7 +154,38 @@ public class DetailsActivity extends Activity {
         protected void onPostExecute(String jsonResult) {
             super.onPostExecute(jsonResult);
             Log.d("FetchHistoricValues", jsonResult);
-            setData();
+
+            List<DailyValues> resultList = new ArrayList<>();
+            JSONObject jsonObject = null;
+            JSONArray resultsArray = null;
+            try{
+                jsonObject = new JSONObject(jsonResult);
+                if (jsonObject != null && jsonObject.length() != 0){
+                    jsonObject = jsonObject.getJSONObject("query");
+                    resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");
+
+                    if (resultsArray != null && resultsArray.length() != 0){
+                        for (int i = 0; i < resultsArray.length(); i++){
+                            jsonObject = resultsArray.getJSONObject(i);
+
+                            DailyValues values = new DailyValues();
+                            values.setDate(jsonObject.getString("Date"));
+                            values.setOpen(jsonObject.getString("Open"));
+                            values.setHigh(jsonObject.getString("High"));
+                            values.setLow(jsonObject.getString("Low"));
+                            values.setClose(jsonObject.getString("Close"));
+                            values.setVolume(jsonObject.getLong("Volume"));
+                            values.setAdjClose(jsonObject.getString("Adj_Close"));
+
+                            resultList.add(values);
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            setData(resultList);
         }
     }
 
