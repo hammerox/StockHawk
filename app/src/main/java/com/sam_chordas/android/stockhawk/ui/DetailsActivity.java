@@ -1,10 +1,12 @@
 package com.sam_chordas.android.stockhawk.ui;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -30,6 +32,7 @@ import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -38,48 +41,56 @@ public class DetailsActivity extends Activity {
     public final static int DAYS_COUNT = 30;
     public final static int DAYS_TO_SHOW = 15;
 
+    private String symbol;
     private CandleStickChart mChart;
     private XAxis xAxis;
+    private Calendar calendar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
 
+        // Calendar
+        calendar = Calendar.getInstance();
+
         // Title
-        String symbol = getIntent().getStringExtra(MyStocksActivity.KEY_STOCK_SYMBOL);
-        symbol = symbol.toUpperCase();
+        symbol = getIntent().getStringExtra(MyStocksActivity.KEY_STOCK_SYMBOL).toUpperCase();
         TextView titleView = (TextView) findViewById(R.id.details_title);
         titleView.setText(symbol);
 
         // Graph
-        mChart = (CandleStickChart) findViewById(R.id.chart);
-        mChart.setMaxVisibleValueCount(DAYS_TO_SHOW);
-        mChart.setDrawGridBackground(false);
-        mChart.getLegend().setEnabled(false);
-        mChart.setDescription("USD");
-        mChart.setDescriptionColor(Color.WHITE);
+        setCandleChart();
 
-        xAxis = mChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTH_SIDED);
-        xAxis.setDrawGridLines(false);
-        xAxis.setTextColor(Color.WHITE);
-        xAxis.setDrawGridLines(true);
-
-        YAxis leftAxis = mChart.getAxisLeft();
-        leftAxis.setEnabled(true);
-        leftAxis.setLabelCount(7, false);
-        leftAxis.setDrawGridLines(true);
-        leftAxis.setDrawAxisLine(true);
-        leftAxis.setTextColor(Color.WHITE);
-
-        YAxis rightAxis = mChart.getAxisRight();
-        rightAxis.setEnabled(true);
-        rightAxis.setLabelCount(7, false);
-        rightAxis.setDrawAxisLine(true);
-        rightAxis.setTextColor(Color.WHITE);
-
-        new FetchHistoricValues().execute(symbol);
+        // Get data
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String jsonArray = preferences.getString(symbol, null);
+        if (jsonArray != null) {
+            Log.d("getPreferences", "Array check: OK");
+            JSONArray resultsArray = null;
+            try {
+                resultsArray = new JSONArray(jsonArray);
+                String endDate = resultsArray.getJSONObject(0).getString("Date");
+                Log.d("getPreferences", "endDate: " + endDate);
+                if (Utils.isYesterday(calendar, endDate)) {
+                    Log.d("getPreferences", "Date check: OK - Date is correct");
+                    setData(setDataList(resultsArray));
+                } else {
+                    if (Utils.dateIsLastFriday(calendar, endDate)) {
+                        Log.d("getPreferences", "Date check: OK - Date is last friday");
+                        setData(setDataList(resultsArray));
+                    } else {
+                        Log.d("getPreferences", "Date check: FALSE - Is not a valid date");
+                        new FetchHistoricValues().execute(symbol);
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.d("getPreferences", "Array check: FALSE - Fetching new data");
+            new FetchHistoricValues().execute(symbol);
+        }
     }
 
 
@@ -122,6 +133,62 @@ public class DetailsActivity extends Activity {
     }
 
 
+    public void setCandleChart() {
+        mChart = (CandleStickChart) findViewById(R.id.chart);
+        mChart.setMaxVisibleValueCount(DAYS_TO_SHOW);
+        mChart.setDrawGridBackground(false);
+        mChart.getLegend().setEnabled(false);
+        mChart.setDescription("USD");
+        mChart.setDescriptionColor(Color.WHITE);
+
+        xAxis = mChart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTH_SIDED);
+        xAxis.setDrawGridLines(false);
+        xAxis.setTextColor(Color.WHITE);
+        xAxis.setDrawGridLines(true);
+
+        YAxis leftAxis = mChart.getAxisLeft();
+        leftAxis.setEnabled(true);
+        leftAxis.setLabelCount(7, false);
+        leftAxis.setDrawGridLines(true);
+        leftAxis.setDrawAxisLine(true);
+        leftAxis.setTextColor(Color.WHITE);
+
+        YAxis rightAxis = mChart.getAxisRight();
+        rightAxis.setEnabled(true);
+        rightAxis.setLabelCount(7, false);
+        rightAxis.setDrawAxisLine(true);
+        rightAxis.setTextColor(Color.WHITE);
+    }
+
+
+    public List<DailyValues> setDataList(JSONArray jsonArray){
+        List<DailyValues> list = new ArrayList<>();
+        JSONObject jsonObject = null;
+
+        try {
+            int size = jsonArray.length();
+            for (int i = size - 1; i >= 0; i--) {
+                jsonObject = jsonArray.getJSONObject(i);
+
+                DailyValues values = new DailyValues();
+                values.setDate(jsonObject.getString("Date"));
+                values.setOpen(jsonObject.getString("Open"));
+                values.setHigh(jsonObject.getString("High"));
+                values.setLow(jsonObject.getString("Low"));
+                values.setClose(jsonObject.getString("Close"));
+                values.setVolume(jsonObject.getLong("Volume"));
+                values.setAdjClose(jsonObject.getString("Adj_Close"));
+
+                list.add(values);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+
     public class FetchHistoricValues extends AsyncTask<String,Void,String> {
 
         private String startDate;
@@ -131,7 +198,7 @@ public class DetailsActivity extends Activity {
         protected String doInBackground(String... params) {
             StringBuilder urlStringBuilder = new StringBuilder();
             endDate = Utils.getTodayDate();
-            startDate = Utils.getStartDate(endDate, DAYS_COUNT);
+            startDate = Utils.getStartDate(calendar, endDate, DAYS_COUNT);
 
             Log.d("FetchHistoricValues", "start: " + startDate + " - end: " + endDate);
 
@@ -159,57 +226,50 @@ public class DetailsActivity extends Activity {
                 }
             }
 
-            /*TODO - Save jsonString to SharedPreferences*/
-            /*TODO - Check if already exists data on SharedPreferences
-            *   if true, check if yesterday date is the same as the last date on data
-            *       if true, OK
-            *       if false, check if last date on data is a Friday
-            *           if true, OK
-            *           if false, fetch new data
-            *   if false, fetch new data */
             /*TODO - Delete symbol's SharedPreferences when removed from list*/
-            
+            /*TODO - Warn user when connection to server fails*/
+
             return jsonString;
         }
 
         @Override
         protected void onPostExecute(String jsonResult) {
             super.onPostExecute(jsonResult);
-            Log.d("FetchHistoricValues", jsonResult);
 
-            List<DailyValues> resultList = new ArrayList<>();
-            JSONObject jsonObject = null;
-            JSONArray resultsArray = null;
-            try{
-                jsonObject = new JSONObject(jsonResult);
-                if (jsonObject != null && jsonObject.length() != 0){
-                    jsonObject = jsonObject.getJSONObject("query");
-                    resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");
+            if (jsonResult != null) {
+                Log.d("FetchHistoricValues", jsonResult);
 
-                    if (resultsArray != null && resultsArray.length() != 0){
-                        int size = resultsArray.length();
-                        for (int i = size - 1; i >= 0; i--){
-                            jsonObject = resultsArray.getJSONObject(i);
+                List<DailyValues> resultList = new ArrayList<>();
+                JSONObject jsonObject = null;
+                JSONArray resultsArray = null;
+                try {
+                    // Get jsonArray.
+                    jsonObject = new JSONObject(jsonResult);
+                    if (jsonObject != null && jsonObject.length() != 0) {
+                        jsonObject = jsonObject.getJSONObject("query");
+                        resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");
 
-                            DailyValues values = new DailyValues();
-                            values.setDate(jsonObject.getString("Date"));
-                            values.setOpen(jsonObject.getString("Open"));
-                            values.setHigh(jsonObject.getString("High"));
-                            values.setLow(jsonObject.getString("Low"));
-                            values.setClose(jsonObject.getString("Close"));
-                            values.setVolume(jsonObject.getLong("Volume"));
-                            values.setAdjClose(jsonObject.getString("Adj_Close"));
+                        // If jsonArray is valid ...
+                        if (resultsArray != null && resultsArray.length() != 0) {
 
-                            resultList.add(values);
+                            // save array to SharedPreferences ...
+                            SharedPreferences preferences = PreferenceManager
+                                    .getDefaultSharedPreferences(DetailsActivity.this);
+                            SharedPreferences.Editor editor = preferences.edit();
+                            editor.putString(symbol, resultsArray.toString());
+                            editor.apply();
+
+                            // and add values to data list.
+                            resultList = setDataList(resultsArray);
                         }
                     }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
 
-            if (resultList.size() > 0) {
-                setData(resultList);
+                if (resultList.size() > 0) {
+                    setData(resultList);
+                }
             }
         }
     }

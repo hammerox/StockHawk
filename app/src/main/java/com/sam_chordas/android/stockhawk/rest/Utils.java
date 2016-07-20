@@ -31,6 +31,7 @@ import org.json.JSONObject;
 public class Utils {
 
 	private static String LOG_TAG = Utils.class.getSimpleName();
+    public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	public static boolean showPercent = true;
 
@@ -147,19 +148,46 @@ public class Utils {
 
 
     public static String getTodayDate() {
-        return new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        return dateFormat.format(new Date());
     }
 
 
-    public static String getStartDate(String endDate, int daysCount) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Calendar calendar = Calendar.getInstance();
+    public static String getStartDate(Calendar calendar, String endDate, int daysCount) {
         try {
-            calendar.setTime(sdf.parse(endDate));
+            calendar.setTime(dateFormat.parse(endDate));
         } catch (ParseException e) {
             e.printStackTrace();
         }
         calendar.add(Calendar.DATE, -daysCount);
-        return sdf.format(calendar.getTime());
+        return dateFormat.format(calendar.getTime());
+    }
+
+
+    public static boolean isYesterday(Calendar calendar, String endDate) {
+        calendar.setTime(new Date());
+        calendar.add(Calendar.DATE, -1);
+        String yesterday = dateFormat.format(calendar.getTime());
+        Log.d("getPreferences", "yesterday: " + yesterday);
+
+        return yesterday.equals(endDate);
+    }
+
+
+    public static boolean dateIsLastFriday(Calendar calendar, String endDate) {
+        String lastFriday = null;
+        int dayOfWeek;
+
+        for (int i = 0; i < 6; i++) {
+            calendar.setTime(new Date());
+            calendar.add(Calendar.DATE, -i);
+            dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+            if (dayOfWeek == 6) {
+                lastFriday = dateFormat.format(calendar.getTime());
+                break;
+            }
+            if (i == 5) return false;
+        }
+
+        return lastFriday.equals(endDate);
     }
 }
