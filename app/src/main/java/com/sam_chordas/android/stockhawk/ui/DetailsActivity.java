@@ -62,6 +62,26 @@ public class DetailsActivity extends Activity {
         // Graph
         setCandleChart();
 
+        mChart = (CandleStickChart) findViewById(R.id.chart);
+        mChart.setMaxVisibleValueCount(DAYS_TO_SHOW);
+        mChart.setDrawGridBackground(false);
+        mChart.getLegend().setEnabled(false);
+        mChart.setDescription("USD");
+        mChart.setDescriptionColor(Color.WHITE);
+
+        xAxis = mChart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTH_SIDED);
+        xAxis.setDrawGridLines(false);
+        xAxis.setTextColor(Color.WHITE);
+        xAxis.setDrawGridLines(true);
+
+        YAxis leftAxis = mChart.getAxisLeft();
+        leftAxis.setEnabled(true);
+        leftAxis.setLabelCount(7, false);
+        leftAxis.setDrawGridLines(true);
+        leftAxis.setDrawAxisLine(true);
+        leftAxis.setTextColor(Color.WHITE);
+
         // Get data
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String jsonArray = preferences.getString(symbol, null);
