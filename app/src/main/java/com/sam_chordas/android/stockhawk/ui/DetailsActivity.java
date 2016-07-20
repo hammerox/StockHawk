@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.CandleStickChart;
@@ -15,6 +16,8 @@ import com.github.mikephil.charting.data.CandleDataSet;
 import com.github.mikephil.charting.data.CandleEntry;
 import com.sam_chordas.android.stockhawk.R;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 public class DetailsActivity extends Activity {
@@ -28,6 +31,7 @@ public class DetailsActivity extends Activity {
 
         // Title
         String symbol = getIntent().getStringExtra(MyStocksActivity.KEY_STOCK_SYMBOL);
+        symbol = symbol.toUpperCase();
         TextView titleView = (TextView) findViewById(R.id.details_title);
         titleView.setText(symbol);
 
@@ -57,7 +61,7 @@ public class DetailsActivity extends Activity {
         rightAxis.setDrawAxisLine(true);
         rightAxis.setTextColor(Color.WHITE);
 
-        setData();
+        new FetchHistoricValues().execute(symbol);
     }
 
 
@@ -101,4 +105,33 @@ public class DetailsActivity extends Activity {
         mChart.invalidate();
     }
 
+
+    public class FetchHistoricValues extends AsyncTask<String,Void,Void> {
+
+
+        @Override
+        protected Void doInBackground(String... params) {
+            StringBuilder urlStringBuilder = new StringBuilder();
+            try{
+                // Base URL for the Yahoo query
+                urlStringBuilder.append("https://query.yahooapis.com/v1/public/yql?q=");
+                urlStringBuilder.append(
+                        URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = ", "UTF-8"));
+                urlStringBuilder.append("\"" + params[0] + "\"");
+                urlStringBuilder.append(
+                        URLEncoder.encode(" and startDate = \"2015-05-01\" and endDate =\"2015-05-19\"", "UTF-8"));
+                urlStringBuilder.append("&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=");
+                Log.d("URL", urlStringBuilder.toString());
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            setData();
+        }
+    }
 }
