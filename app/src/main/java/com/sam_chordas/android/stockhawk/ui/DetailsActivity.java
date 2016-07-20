@@ -15,7 +15,11 @@ import com.github.mikephil.charting.data.CandleData;
 import com.github.mikephil.charting.data.CandleDataSet;
 import com.github.mikephil.charting.data.CandleEntry;
 import com.sam_chordas.android.stockhawk.R;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -106,11 +110,11 @@ public class DetailsActivity extends Activity {
     }
 
 
-    public class FetchHistoricValues extends AsyncTask<String,Void,Void> {
+    public class FetchHistoricValues extends AsyncTask<String,Void,String> {
 
 
         @Override
-        protected Void doInBackground(String... params) {
+        protected String doInBackground(String... params) {
             StringBuilder urlStringBuilder = new StringBuilder();
             try{
                 // Base URL for the Yahoo query
@@ -121,17 +125,40 @@ public class DetailsActivity extends Activity {
                 urlStringBuilder.append(
                         URLEncoder.encode(" and startDate = \"2015-05-01\" and endDate =\"2015-05-19\"", "UTF-8"));
                 urlStringBuilder.append("&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=");
-                Log.d("URL", urlStringBuilder.toString());
+                Log.d("FetchHistoricValues", urlStringBuilder.toString());
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-            return null;
+
+            String jsonString = null;
+            if (urlStringBuilder != null) {
+                try {
+                    jsonString = fetchData(urlStringBuilder.toString());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return jsonString;
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
+        protected void onPostExecute(String jsonResult) {
+            super.onPostExecute(jsonResult);
+            Log.d("FetchHistoricValues", jsonResult);
             setData();
         }
+    }
+
+
+    String fetchData(String url) throws IOException {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        return response.body().string();
     }
 }
