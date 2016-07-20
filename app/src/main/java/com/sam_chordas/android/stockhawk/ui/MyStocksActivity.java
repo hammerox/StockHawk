@@ -19,6 +19,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.sam_chordas.android.stockhawk.R;
@@ -44,6 +45,9 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 	/**
 	 * Used to store the last screen title. For use in {@link #restoreActionBar()}.
 	 */
+
+    public final static String KEY_STOCK_SYMBOL = "stock_symbol";
+
 	private CharSequence mTitle;
 	private Intent mServiceIntent;
 	private ItemTouchHelper mItemTouchHelper;
@@ -84,8 +88,8 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 		recyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(this,
 				new RecyclerViewItemClickListener.OnItemClickListener() {
 					@Override public void onItemClick(View v, int position) {
-						//TODO:
-						// do something on item click
+                        TextView symbol = (TextView) v.findViewById(R.id.stock_symbol);
+                        startDetailsActivity(symbol.getText().toString());
 					}
 				}));
 		recyclerView.setAdapter(mCursorAdapter);
@@ -223,5 +227,12 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 	public void onLoaderReset(Loader<Cursor> loader){
 		mCursorAdapter.swapCursor(null);
 	}
+
+
+    public void startDetailsActivity(String symbolString) {
+        Intent intent = new Intent(mContext, DetailsActivity.class);
+        intent.putExtra(KEY_STOCK_SYMBOL, symbolString);
+        mContext.startActivity(intent);
+    }
 
 }
