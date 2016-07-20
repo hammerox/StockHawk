@@ -26,9 +26,12 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class DetailsActivity extends Activity {
@@ -115,10 +118,16 @@ public class DetailsActivity extends Activity {
 
     public class FetchHistoricValues extends AsyncTask<String,Void,String> {
 
+        public final static int DAYS_COUNT = 30;
 
         @Override
         protected String doInBackground(String... params) {
             StringBuilder urlStringBuilder = new StringBuilder();
+            String endDate = getTodayDate();
+            String startDate = getStartDate(getTodayDate(), DAYS_COUNT);
+
+            Log.d("FetchHistoricValues", "start: " + startDate + " - end: " + endDate);
+
             try{
                 // Base URL for the Yahoo query
                 urlStringBuilder.append("https://query.yahooapis.com/v1/public/yql?q=");
@@ -126,7 +135,8 @@ public class DetailsActivity extends Activity {
                         URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = ", "UTF-8"));
                 urlStringBuilder.append("\"" + params[0] + "\"");
                 urlStringBuilder.append(
-                        URLEncoder.encode(" and startDate = \"2015-05-01\" and endDate =\"2015-05-19\"", "UTF-8"));
+                        URLEncoder.encode(" and startDate = \"" + startDate
+                                + "\" and endDate =\"" + endDate + "\"", "UTF-8"));
                 urlStringBuilder.append("&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=");
                 Log.d("FetchHistoricValues", urlStringBuilder.toString());
             } catch (UnsupportedEncodingException e) {
@@ -197,5 +207,23 @@ public class DetailsActivity extends Activity {
 
         Response response = client.newCall(request).execute();
         return response.body().string();
+    }
+
+
+    public String getTodayDate() {
+        return new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+    }
+
+
+    public String getStartDate(String endDate, int daysCount) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar c = Calendar.getInstance();
+        try {
+            c.setTime(sdf.parse(endDate));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        c.add(Calendar.DATE, -daysCount);
+        return sdf.format(c.getTime());
     }
 }
