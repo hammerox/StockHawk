@@ -226,7 +226,6 @@ public class DetailsActivity extends Activity {
                 }
             }
 
-            /*TODO - Delete symbol's SharedPreferences when removed from list*/
             /*TODO - Warn user when connection to server fails*/
 
             return jsonString;

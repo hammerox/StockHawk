@@ -1,11 +1,14 @@
 package com.sam_chordas.android.stockhawk.rest;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,6 +81,15 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
     String symbol = c.getString(c.getColumnIndex(QuoteColumns.SYMBOL));
     mContext.getContentResolver().delete(QuoteProvider.Quotes.withSymbol(symbol), null, null);
     notifyItemRemoved(position);
+
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+    if (preferences.contains(symbol.toUpperCase())) {
+      SharedPreferences.Editor editor = preferences.edit();
+      editor.remove(symbol.toUpperCase())
+              .apply();
+      Log.d("getPreferences", "Deleted: " + symbol.toUpperCase());
+    }
+
   }
 
   @Override public int getItemCount() {
