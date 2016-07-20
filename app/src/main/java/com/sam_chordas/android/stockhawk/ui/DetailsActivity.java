@@ -9,16 +9,16 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.CandleStickChart;
+import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.CandleData;
 import com.github.mikephil.charting.data.CandleDataSet;
 import com.github.mikephil.charting.data.CandleEntry;
+import com.github.mikephil.charting.formatter.AxisValueFormatter;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.rest.DailyValues;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+import com.sam_chordas.android.stockhawk.rest.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,13 +30,13 @@ import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 public class DetailsActivity extends Activity {
 
     private CandleStickChart mChart;
+    private XAxis xAxis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +57,11 @@ public class DetailsActivity extends Activity {
         mChart.setDescription("USD");
         mChart.setDescriptionColor(Color.WHITE);
 
-        XAxis xAxis = mChart.getXAxis();
+        xAxis = mChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTH_SIDED);
         xAxis.setDrawGridLines(false);
         xAxis.setTextColor(Color.WHITE);
+        xAxis.setDrawGridLines(true);
 
         YAxis leftAxis = mChart.getAxisLeft();
         leftAxis.setEnabled(true);
@@ -113,6 +114,7 @@ public class DetailsActivity extends Activity {
 
         mChart.setData(data);
         mChart.invalidate();
+        xAxis.setValueFormatter(new DateAxisFormatter(dailyValues));
     }
 
 
@@ -120,16 +122,18 @@ public class DetailsActivity extends Activity {
 
         public final static int DAYS_COUNT = 30;
 
+        private String startDate;
+        private String endDate;
+
         @Override
         protected String doInBackground(String... params) {
             StringBuilder urlStringBuilder = new StringBuilder();
-            String endDate = getTodayDate();
-            String startDate = getStartDate(getTodayDate(), DAYS_COUNT);
+            endDate = Utils.getTodayDate();
+            startDate = Utils.getStartDate(endDate, DAYS_COUNT);
 
             Log.d("FetchHistoricValues", "start: " + startDate + " - end: " + endDate);
 
             try{
-                // Base URL for the Yahoo query
                 urlStringBuilder.append("https://query.yahooapis.com/v1/public/yql?q=");
                 urlStringBuilder.append(
                         URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = ", "UTF-8"));
@@ -146,7 +150,7 @@ public class DetailsActivity extends Activity {
             String jsonString = null;
             if (urlStringBuilder != null) {
                 try {
-                    jsonString = fetchData(urlStringBuilder.toString());
+                    jsonString = Utils.fetchData(urlStringBuilder.toString());
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -199,31 +203,37 @@ public class DetailsActivity extends Activity {
     }
 
 
-    String fetchData(String url) throws IOException {
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
+    public class DateAxisFormatter implements AxisValueFormatter {
 
-        Response response = client.newCall(request).execute();
-        return response.body().string();
-    }
+        List<DailyValues> dailyValues;
 
-
-    public String getTodayDate() {
-        return new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-    }
-
-
-    public String getStartDate(String endDate, int daysCount) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Calendar c = Calendar.getInstance();
-        try {
-            c.setTime(sdf.parse(endDate));
-        } catch (ParseException e) {
-            e.printStackTrace();
+        public DateAxisFormatter(List<DailyValues> dailyValues) {
+            this.dailyValues = dailyValues;
         }
-        c.add(Calendar.DATE, -daysCount);
-        return sdf.format(c.getTime());
+
+        @Override
+        public String getFormattedValue(float value, AxisBase axis) {
+            int i = (int) value;
+            String dateString = dailyValues.get(i).getDate();
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = null;
+            try {
+                date = inputFormat.parse(dateString);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            SimpleDateFormat axisFormat = new SimpleDateFormat("MM/dd");
+
+            if (date != null) {
+                return axisFormat.format(date);
+            } else {
+                return String.valueOf(i);
+            }
+        }
+
+        @Override
+        public int getDecimalDigits() {
+            return 0;
+        }
     }
 }
