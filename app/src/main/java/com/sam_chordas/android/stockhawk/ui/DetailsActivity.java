@@ -226,8 +226,6 @@ public class DetailsActivity extends Activity {
                 }
             }
 
-            /*TODO - Warn user when connection to server fails*/
-
             return jsonString;
         }
 
@@ -269,6 +267,8 @@ public class DetailsActivity extends Activity {
                 if (resultList.size() > 0) {
                     setData(resultList);
                 }
+            } else {
+                mChart.setNoDataText(getString(R.string.graph_no_network));
             }
         }
     }
