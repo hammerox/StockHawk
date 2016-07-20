@@ -81,23 +81,19 @@ public class DetailsActivity extends Activity {
 
         ArrayList<CandleEntry> yVals1 = new ArrayList<>();
 
-        int xProg = 20;
-        int yProg = 100;
+        int count = dailyValues.size();
 
-        for (int i = 0; i < xProg; i++) {
-            float mult = (yProg);
-            float val = (float) (Math.random() * 40) + mult;
-
-            float high = (float) (Math.random() * 9) + 8f;
-            float low = (float) (Math.random() * 9) + 8f;
-
-            float open = (float) (Math.random() * 6) + 1f;
-            float close = (float) (Math.random() * 6) + 1f;
-
-            boolean even = i % 2 == 0;
-
-            yVals1.add(new CandleEntry(i, val + high, val - low, even ? val + open : val - open,
-                    even ? val - close : val + close));
+        for (int i = 0; i < count; i++) {
+            DailyValues values = dailyValues.get(i);
+            yVals1.add(
+                    new CandleEntry(
+                            i,
+                            values.getHigh(),
+                            values.getLow(),
+                            values.getOpen(),
+                            values.getClose()
+                    )
+            );
         }
 
         CandleDataSet set1 = new CandleDataSet(yVals1, "Data Set");
@@ -165,7 +161,8 @@ public class DetailsActivity extends Activity {
                     resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");
 
                     if (resultsArray != null && resultsArray.length() != 0){
-                        for (int i = 0; i < resultsArray.length(); i++){
+                        int size = resultsArray.length();
+                        for (int i = size - 1; i >= 0; i--){
                             jsonObject = resultsArray.getJSONObject(i);
 
                             DailyValues values = new DailyValues();
@@ -185,7 +182,9 @@ public class DetailsActivity extends Activity {
                 e.printStackTrace();
             }
 
-            setData(resultList);
+            if (resultList.size() > 0) {
+                setData(resultList);
+            }
         }
     }
 
