@@ -1,5 +1,6 @@
 package com.sam_chordas.android.stockhawk.rest;
 
+import android.app.Application;
 import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.os.Handler;
@@ -42,14 +43,16 @@ public class Utils {
 		try{
 			jsonObject = new JSONObject(JSON);
 			if (jsonObject != null && jsonObject.length() != 0){
-				jsonObject = jsonObject.getJSONObject("query");
-				int count = Integer.parseInt(jsonObject.getString("count"));
+				jsonObject = jsonObject.getJSONObject(context.getString(R.string.value_query));
+				int count = Integer.parseInt(jsonObject.getString(context.getString(R.string.value_count)));
 				if (count == 1){
-					jsonObject = jsonObject.getJSONObject("results")
-							.getJSONObject("quote");
+					jsonObject = jsonObject.getJSONObject(context.getString(R.string.value_results))
+							.getJSONObject(context.getString(R.string.value_quote));
 					addToList(context, jsonObject, batchOperations);
 				} else{
-					resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");
+					resultsArray = jsonObject.getJSONObject(
+                            context.getString(R.string.value_results))
+                            .getJSONArray(context.getString(R.string.value_quote));
 
 					if (resultsArray != null && resultsArray.length() != 0){
 						for (int i = 0; i < resultsArray.length(); i++){
@@ -167,7 +170,6 @@ public class Utils {
         calendar.setTime(new Date());
         calendar.add(Calendar.DATE, -1);
         String yesterday = dateFormat.format(calendar.getTime());
-        Log.d("getPreferences", "yesterday: " + yesterday);
 
         return yesterday.equals(endDate);
     }

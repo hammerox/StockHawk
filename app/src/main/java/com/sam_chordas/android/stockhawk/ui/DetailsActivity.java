@@ -62,26 +62,6 @@ public class DetailsActivity extends Activity {
         // Graph
         setCandleChart();
 
-        mChart = (CandleStickChart) findViewById(R.id.chart);
-        mChart.setMaxVisibleValueCount(DAYS_TO_SHOW);
-        mChart.setDrawGridBackground(false);
-        mChart.getLegend().setEnabled(false);
-        mChart.setDescription("USD");
-        mChart.setDescriptionColor(Color.WHITE);
-
-        xAxis = mChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTH_SIDED);
-        xAxis.setDrawGridLines(false);
-        xAxis.setTextColor(Color.WHITE);
-        xAxis.setDrawGridLines(true);
-
-        YAxis leftAxis = mChart.getAxisLeft();
-        leftAxis.setEnabled(true);
-        leftAxis.setLabelCount(7, false);
-        leftAxis.setDrawGridLines(true);
-        leftAxis.setDrawAxisLine(true);
-        leftAxis.setTextColor(Color.WHITE);
-
         // Get data
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String jsonArray = preferences.getString(symbol, null);
@@ -158,7 +138,7 @@ public class DetailsActivity extends Activity {
         mChart.setMaxVisibleValueCount(DAYS_TO_SHOW);
         mChart.setDrawGridBackground(false);
         mChart.getLegend().setEnabled(false);
-        mChart.setDescription("USD");
+        mChart.setDescription(getString(R.string.graph_description));
         mChart.setDescriptionColor(Color.WHITE);
 
         xAxis = mChart.getXAxis();
@@ -192,13 +172,13 @@ public class DetailsActivity extends Activity {
                 jsonObject = jsonArray.getJSONObject(i);
 
                 DailyValues values = new DailyValues();
-                values.setDate(jsonObject.getString("Date"));
-                values.setOpen(jsonObject.getString("Open"));
-                values.setHigh(jsonObject.getString("High"));
-                values.setLow(jsonObject.getString("Low"));
-                values.setClose(jsonObject.getString("Close"));
-                values.setVolume(jsonObject.getLong("Volume"));
-                values.setAdjClose(jsonObject.getString("Adj_Close"));
+                values.setDate(jsonObject.getString(getString(R.string.value_date)));
+                values.setOpen(jsonObject.getString(getString(R.string.value_open)));
+                values.setHigh(jsonObject.getString(getString(R.string.value_high)));
+                values.setLow(jsonObject.getString(getString(R.string.value_low)));
+                values.setClose(jsonObject.getString(getString(R.string.value_close)));
+                values.setVolume(jsonObject.getLong(getString(R.string.value_volume)));
+                values.setAdjClose(jsonObject.getString(getString(R.string.value_adj_close)));
 
                 list.add(values);
             }
@@ -306,14 +286,14 @@ public class DetailsActivity extends Activity {
         public String getFormattedValue(float value, AxisBase axis) {
             int i = (int) value;
             String dateString = dailyValues.get(i).getDate();
-            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat inputFormat = new SimpleDateFormat(getString(R.string.date_format_default));
             Date date = null;
             try {
                 date = inputFormat.parse(dateString);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            SimpleDateFormat axisFormat = new SimpleDateFormat("MM/dd");
+            SimpleDateFormat axisFormat = new SimpleDateFormat(getString(R.string.date_format_graph));
 
             if (date != null) {
                 return axisFormat.format(date);
