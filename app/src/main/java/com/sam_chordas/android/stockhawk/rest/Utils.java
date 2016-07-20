@@ -65,7 +65,6 @@ public class Utils {
 	}
 
 	public static String truncateBidPrice(String bidPrice){
-		/*Todo - DEBUG - java.lang.NumberFormatException: Invalid float: "null"*/
 		bidPrice = String.format("%.2f", Float.parseFloat(bidPrice));
 		return bidPrice;
 	}

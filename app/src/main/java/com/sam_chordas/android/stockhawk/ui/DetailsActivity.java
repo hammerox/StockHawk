@@ -35,6 +35,9 @@ import java.util.List;
 
 public class DetailsActivity extends Activity {
 
+    public final static int DAYS_COUNT = 30;
+    public final static int DAYS_TO_SHOW = 15;
+
     private CandleStickChart mChart;
     private XAxis xAxis;
 
@@ -51,7 +54,7 @@ public class DetailsActivity extends Activity {
 
         // Graph
         mChart = (CandleStickChart) findViewById(R.id.chart);
-        mChart.setMaxVisibleValueCount(20);
+        mChart.setMaxVisibleValueCount(DAYS_TO_SHOW);
         mChart.setDrawGridBackground(false);
         mChart.getLegend().setEnabled(false);
         mChart.setDescription("USD");
@@ -102,6 +105,7 @@ public class DetailsActivity extends Activity {
 
         CandleDataSet set1 = new CandleDataSet(yVals1, "Data Set");
         set1.setAxisDependency(YAxis.AxisDependency.LEFT);
+        set1.setValueTextColor(Color.WHITE);
         set1.setShadowColor(Color.WHITE);
         set1.setShadowWidth(2f);
         set1.setDecreasingColor(Color.RED);
@@ -119,8 +123,6 @@ public class DetailsActivity extends Activity {
 
 
     public class FetchHistoricValues extends AsyncTask<String,Void,String> {
-
-        public final static int DAYS_COUNT = 30;
 
         private String startDate;
         private String endDate;
@@ -157,6 +159,16 @@ public class DetailsActivity extends Activity {
                 }
             }
 
+            /*TODO - Save jsonString to SharedPreferences*/
+            /*TODO - Check if already exists data on SharedPreferences
+            *   if true, check if yesterday date is the same as the last date on data
+            *       if true, OK
+            *       if false, check if last date on data is a Friday
+            *           if true, OK
+            *           if false, fetch new data
+            *   if false, fetch new data */
+            /*TODO - Delete symbol's SharedPreferences when removed from list*/
+            
             return jsonString;
         }
 
