@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.Build;
 import android.widget.RemoteViews;
 
 import com.sam_chordas.android.stockhawk.R;
@@ -17,7 +16,7 @@ import com.sam_chordas.android.stockhawk.ui.MyStocksActivity;
 /**
  * Created by Mauricio on 20-Jul-16.
  */
-public class PercentWidgetIntentService extends IntentService {
+public class WidgetIntentService extends IntentService {
 
     private final static String[] QUOTE_COLUMNS = {
             QuoteColumns._ID,
@@ -40,7 +39,7 @@ public class PercentWidgetIntentService extends IntentService {
     private final static int INDEX_ISUP = 7;
 
     
-    public PercentWidgetIntentService() {
+    public WidgetIntentService() {
         super("PercentWidgetIntentService");
     }
 
@@ -50,7 +49,7 @@ public class PercentWidgetIntentService extends IntentService {
 
         AppWidgetManager widgetManager = AppWidgetManager.getInstance(this);
         int[] appWidgetIds = widgetManager
-                .getAppWidgetIds(new ComponentName(this, PercentWidgetProvider.class));
+                .getAppWidgetIds(new ComponentName(this, WidgetProvider.class));
 
         Cursor data = getContentResolver().query(
                         QuoteProvider.Quotes.CONTENT_URI,
@@ -66,7 +65,7 @@ public class PercentWidgetIntentService extends IntentService {
         }
 
         String symbol = data.getString(INDEX_SYMBOL).toUpperCase();
-        String value = data.getString(INDEX_PERCENT_CHANGE);
+        String valuePercent = data.getString(INDEX_PERCENT_CHANGE);
         boolean isUp = data.getInt(INDEX_ISUP) == 1;
 
         data.close();
@@ -75,18 +74,18 @@ public class PercentWidgetIntentService extends IntentService {
         for (int appWidgetId : appWidgetIds) {
             RemoteViews views = new RemoteViews(
                     this.getPackageName(),
-                    R.layout.widget_percent_small);
+                    R.layout.widget_small);
 
             // Add data
             views.setTextViewText(R.id.widget_symbol, symbol);
-            views.setTextViewText(R.id.widget_value, value);
+            views.setTextViewText(R.id.widget_value_percent, valuePercent);
 
             // Format color
             if (isUp) {
-                views.setInt(R.id.widget_value, "setBackgroundResource",
+                views.setInt(R.id.widget_value_percent, "setBackgroundResource",
                         R.drawable.percent_change_pill_green);
             } else {
-                views.setInt(R.id.widget_value, "setBackgroundResource",
+                views.setInt(R.id.widget_value_percent, "setBackgroundResource",
                         R.drawable.percent_change_pill_red);
             }
 
