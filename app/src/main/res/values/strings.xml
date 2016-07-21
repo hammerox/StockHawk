@@ -31,4 +31,6 @@
     <string name="graph_no_network">No chart data available\nCould not connect to server</string>
 
     <string name="widget_title">Share Value</string>
+    <string name="empty_list">Empty List</string>
+    <string name="currency">" USD"</string>
 </resources>

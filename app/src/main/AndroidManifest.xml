@@ -38,7 +38,11 @@
             </intent-filter>
         </service>
         <service android:name=".service.StockIntentService"/>
-        <service android:name=".widget.WidgetIntentService" />
+        <service
+            android:name=".widget.WidgetRemoteViewsService"
+            android:enabled="@bool/widget_detail_enabled"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
 
         <provider
             android:name=".data.generated.QuoteProvider"
