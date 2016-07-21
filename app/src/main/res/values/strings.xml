@@ -30,5 +30,5 @@
     <string name="date_format_graph" translatable="false">MM/dd</string>
     <string name="graph_no_network">No chart data available\nCould not connect to server</string>
 
-    <string name="widget_percent_title">Share Value</string>
+    <string name="widget_title">Share Value</string>
 </resources>

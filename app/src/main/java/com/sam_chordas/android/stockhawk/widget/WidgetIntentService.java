@@ -1,11 +1,16 @@
 package com.sam_chordas.android.stockhawk.widget;
 
+import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.widget.RemoteViews;
 
 import com.sam_chordas.android.stockhawk.R;
@@ -65,6 +70,8 @@ public class WidgetIntentService extends IntentService {
         }
 
         String symbol = data.getString(INDEX_SYMBOL).toUpperCase();
+        String bidPrice = data.getString(INDEX_BIDPRICE);
+        String valueReal = data.getString(INDEX_CHANGE);
         String valuePercent = data.getString(INDEX_PERCENT_CHANGE);
         boolean isUp = data.getInt(INDEX_ISUP) == 1;
 
@@ -72,13 +79,27 @@ public class WidgetIntentService extends IntentService {
 
         // Perform loop on every widget available
         for (int appWidgetId : appWidgetIds) {
-            RemoteViews views = new RemoteViews(
-                    this.getPackageName(),
-                    R.layout.widget_small);
+
+            // Get layout according to widget size
+            int widgetWidth = getWidgetWidth(widgetManager, appWidgetId);
+            int defaultWidth = getResources().getDimensionPixelSize(R.dimen.widget_size_medium);
+            int largeWidth = getResources().getDimensionPixelSize(R.dimen.widget_size_large);
+            int layoutId;
+            if (widgetWidth >= largeWidth) {
+                layoutId = R.layout.widget_large;
+            } else if (widgetWidth >= defaultWidth) {
+                layoutId = R.layout.widget_medium;
+            } else {
+                layoutId = R.layout.widget_small;
+            }
+
+            RemoteViews views = new RemoteViews(this.getPackageName(), layoutId);
 
             // Add data
             views.setTextViewText(R.id.widget_symbol, symbol);
+            views.setTextViewText(R.id.widget_value_real, valueReal);
             views.setTextViewText(R.id.widget_value_percent, valuePercent);
+            views.setTextViewText(R.id.widget_bidprice, bidPrice);
 
             // Format color
             if (isUp) {
@@ -98,5 +119,30 @@ public class WidgetIntentService extends IntentService {
             widgetManager.updateAppWidget(appWidgetId, views);
         }
 
+    }
+
+
+    private int getWidgetWidth(AppWidgetManager appWidgetManager, int appWidgetId) {
+        // Prior to Jelly Bean, widgets were always their default size
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            return getResources().getDimensionPixelSize(R.dimen.widget_size_medium);
+        }
+        // For Jelly Bean and higher devices, widgets can be resized - the current size can be
+        // retrieved from the newly added App Widget Options
+        return getWidgetWidthFromOptions(appWidgetManager, appWidgetId);
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    private int getWidgetWidthFromOptions(AppWidgetManager appWidgetManager, int appWidgetId) {
+        Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
+        if (options.containsKey(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)) {
+            int minWidthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
+            // The width returned is in dp, but we'll convert it to pixels to match the other widths
+            DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+            return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, minWidthDp,
+                    displayMetrics);
+        }
+        return  getResources().getDimensionPixelSize(R.dimen.widget_size_medium);
     }
 }
