@@ -2,6 +2,7 @@ package com.sam_chordas.android.stockhawk.service;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -26,6 +27,9 @@ import java.net.URLEncoder;
  * and is used for the initialization and adding task as well.
  */
 public class StockTaskService extends GcmTaskService{
+
+    public final static String ACTION_DATA_UPDATED = "com.sam_chordas.android.stockhawk.app.ACTION_DATA_UPDATED";
+
 	private String LOG_TAG = StockTaskService.class.getSimpleName();
 
 	private OkHttpClient client = new OkHttpClient();
@@ -124,6 +128,11 @@ public class StockTaskService extends GcmTaskService{
 					}
 					mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
 							Utils.quoteJsonToContentVals(mContext, getResponse));
+
+                    // Send update to widget
+                    Intent widgetUpdateIntent = new Intent(ACTION_DATA_UPDATED);
+                    mContext.sendBroadcast(widgetUpdateIntent);
+
 				}catch (RemoteException | OperationApplicationException e){
 					Log.e(LOG_TAG, "Error applying batch insert", e);
 				}

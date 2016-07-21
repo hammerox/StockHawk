@@ -18,6 +18,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:name=".ui.MyStocksActivity"
             android:label="@string/app_name">
@@ -26,6 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".ui.DetailsActivity" />
 
         <service
             android:name=".service.StockTaskService"
@@ -36,25 +38,25 @@
             </intent-filter>
         </service>
         <service android:name=".service.StockIntentService"/>
+        <service android:name=".widget.PercentWidgetIntentService" />
 
         <provider
             android:name=".data.generated.QuoteProvider"
             android:authorities="com.sam_chordas.android.stockhawk.data.QuoteProvider"
             android:exported="false"/>
 
-        <activity android:name=".ui.DetailsActivity">
-        </activity>
-
         <receiver
             android:name=".widget.PercentWidgetProvider"
             android:label="@string/widget_percent_title">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.sam_chordas.android.stockhawk.app.ACTION_DATA_UPDATED" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_percent_info" />
         </receiver>
+
     </application>
 
 </manifest>
