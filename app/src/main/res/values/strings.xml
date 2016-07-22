@@ -12,7 +12,6 @@
     <string name="network_toast">Uh-oh! This app requires an internet connection</string>
     <string name="toast_symbol_not_found">Stock Symbol not found</string>
     <string name="a11y_fab">Add to list</string>
-    <string name="graph_description">currencies in USD</string>
 
     <string name="value_date" translatable="false">Date</string>
     <string name="value_open" translatable="false">Open</string>
@@ -29,8 +28,13 @@
     <string name="date_format_default" translatable="false">yyyy-MM-dd</string>
     <string name="date_format_graph" translatable="false">MM/dd</string>
     <string name="graph_no_network">No chart data available\nCould not connect to server</string>
+    <string name="graph_loading">Loading data, just a second</string>
+    <string name="graph_description">currencies in USD</string>
+    <string name="graph_content_description">Graph with historic values</string>
 
     <string name="widget_title">Share Value</string>
     <string name="empty_list">Empty List</string>
     <string name="currency">" USD"</string>
+
+
 </resources>

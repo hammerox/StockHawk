@@ -140,6 +140,8 @@ public class DetailsActivity extends Activity {
         mChart.getLegend().setEnabled(false);
         mChart.setDescription(getString(R.string.graph_description));
         mChart.setDescriptionColor(Color.WHITE);
+        mChart.setNoDataText(getString(R.string.graph_loading));
+        mChart.setContentDescription(getString(R.string.graph_content_description));
 
         xAxis = mChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTH_SIDED);

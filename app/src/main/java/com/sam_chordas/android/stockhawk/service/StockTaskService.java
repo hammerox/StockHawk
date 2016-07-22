@@ -36,6 +36,9 @@ public class StockTaskService extends GcmTaskService{
 	private Context mContext;
 	private StringBuilder mStoredSymbols = new StringBuilder();
 	private boolean isUpdate;
+    private boolean isInit;
+    private boolean isPeriodic;
+    private boolean isAdding;
 
 	public StockTaskService(){}
 
@@ -57,6 +60,11 @@ public class StockTaskService extends GcmTaskService{
 		if (mContext == null){
 			mContext = this;
 		}
+
+        isInit = params.getTag().equals("init");
+        isPeriodic = params.getTag().equals("periodic");
+        isAdding = params.getTag().equals("add");
+
 		StringBuilder urlStringBuilder = new StringBuilder();
 		try{
 			// Base URL for the Yahoo query
@@ -66,7 +74,7 @@ public class StockTaskService extends GcmTaskService{
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		if (params.getTag().equals("init") || params.getTag().equals("periodic")){
+		if (isInit || isPeriodic){
 			isUpdate = true;
 			initQueryCursor = mContext.getContentResolver().query(QuoteProvider.Quotes.CONTENT_URI,
 					new String[] { "Distinct " + QuoteColumns.SYMBOL }, null,
@@ -94,7 +102,7 @@ public class StockTaskService extends GcmTaskService{
 					e.printStackTrace();
 				}
 			}
-		} else if (params.getTag().equals("add")){
+		} else if (isAdding){
 			isUpdate = false;
 			// get symbol from params.getExtra and build query
 			String stockInput = params.getExtras().getString("symbol");

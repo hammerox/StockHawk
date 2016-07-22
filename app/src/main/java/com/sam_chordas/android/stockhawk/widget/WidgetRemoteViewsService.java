@@ -24,8 +24,8 @@ import com.sam_chordas.android.stockhawk.ui.MyStocksActivity;
 public class WidgetRemoteViewsService extends RemoteViewsService {
 
     private final static String[] QUOTE_COLUMNS = {
-            QuoteColumns._ID,
             QuoteColumns.SYMBOL,
+            QuoteColumns._ID,
             QuoteColumns.BIDPRICE,
             QuoteColumns.CHANGE,
             QuoteColumns.PERCENT_CHANGE,
@@ -34,8 +34,8 @@ public class WidgetRemoteViewsService extends RemoteViewsService {
             QuoteColumns.ISUP
     };
 
-    private final static int INDEX_ID = 0;
-    private final static int INDEX_SYMBOL = 1;
+    private final static int INDEX_SYMBOL = 0;
+    private final static int INDEX_ID = 1;
     private final static int INDEX_BIDPRICE = 2;
     private final static int INDEX_CHANGE = 3;
     private final static int INDEX_PERCENT_CHANGE = 4;
@@ -60,12 +60,7 @@ public class WidgetRemoteViewsService extends RemoteViewsService {
                 }
 
                 final long identityToken = Binder.clearCallingIdentity();
-                data = getContentResolver().query(
-                        QuoteProvider.Quotes.CONTENT_URI,
-                        QUOTE_COLUMNS,
-                        null,
-                        null,
-                        QuoteColumns.CREATED + " ASC");
+                data = queryData();
                 Binder.restoreCallingIdentity(identityToken);
             }
 
@@ -138,12 +133,7 @@ public class WidgetRemoteViewsService extends RemoteViewsService {
                 }
 
                 final long identityToken = Binder.clearCallingIdentity();
-                data = getContentResolver().query(
-                        QuoteProvider.Quotes.CONTENT_URI,
-                        QUOTE_COLUMNS,
-                        null,
-                        null,
-                        QuoteColumns.CREATED + " ASC");
+                data = queryData();
                 Binder.restoreCallingIdentity(identityToken);
 
                 if (data.moveToPosition(position))
@@ -157,4 +147,15 @@ public class WidgetRemoteViewsService extends RemoteViewsService {
             }
         };
     }
+
+
+    public Cursor queryData() {
+        return getContentResolver().query(
+                QuoteProvider.Quotes.CONTENT_URI,
+                QUOTE_COLUMNS,
+                QuoteColumns.SYMBOL + " IS NOT NULL) GROUP BY (" + QuoteColumns.SYMBOL,
+                null,
+                QuoteColumns._ID + " ASC");
+    }
+
 }
