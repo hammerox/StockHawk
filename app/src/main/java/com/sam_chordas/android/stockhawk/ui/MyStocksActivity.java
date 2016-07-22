@@ -13,6 +13,7 @@ import android.support.v7.app.ActionBar;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.InputType;
 import android.view.Gravity;
@@ -68,6 +69,8 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 		isConnected = activeNetwork != null &&
 				activeNetwork.isConnectedOrConnecting();
 		setContentView(R.layout.activity_my_stocks);
+
+        restoreActionBar();
 		// The intent service is for executing immediate pulls from the Yahoo API
 		// GCMTaskService can only schedule tasks, they cannot execute immediately
 		mServiceIntent = new Intent(this, StockIntentService.class);
@@ -113,7 +116,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 											new String[] { input.toString() }, null);
 									if (c.getCount() != 0) {
 										Toast toast =
-												Toast.makeText(MyStocksActivity.this, "This stock is already saved!",
+												Toast.makeText(MyStocksActivity.this, R.string.toast_already_saved,
 														Toast.LENGTH_LONG);
 										toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
 										toast.show();
@@ -172,10 +175,9 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 	}
 
 	public void restoreActionBar() {
-		ActionBar actionBar = getSupportActionBar();
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-		actionBar.setDisplayShowTitleEnabled(true);
-		actionBar.setTitle(mTitle);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+		setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 	}
 
 	@Override

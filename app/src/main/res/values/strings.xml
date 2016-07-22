@@ -35,6 +35,7 @@
     <string name="widget_title">Share Value</string>
     <string name="empty_list">Empty List</string>
     <string name="currency">" USD"</string>
+    <string name="toast_already_saved">This stock is already saved!</string>
 
 
 </resources>
